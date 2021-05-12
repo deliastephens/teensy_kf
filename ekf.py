@@ -1,3 +1,31 @@
+import numpy as np
+
+def quat_to_euler(q):
+    """
+    Converts the quaternion to the Euler angles
+    """
+    q0, q1, q2, q3 = q
+    roll = np.arctan2(2*(q0*q1+q2*q3), 1-2*(q1**2+q2**2))
+    pitch = np.arcsin(2*(q0*q2-q3*q1))
+    yaw = np.arctan2(2*(q0*q3+q1*q2), 1-2*(q2**2 + q3**2))
+    
+    return np.array([roll, pitch, yaw])
+
+def Omega(p, q, r):
+    return np.array([
+        [0, -p, -q, -r],
+        [p, 0, r, -q],
+        [q, -r, 0, p],
+        [r, q, -p, 0]
+    ])
+
+def f(x, Omega, dt):
+    """
+    Linearized function of Process Model (from prediction step)
+    x = x_{t-1}, the past x
+    """
+    return (np.identity(4) + dt / 2 * Omega)@x
+
 class EKF():
     def __init__(self, imu, dt, Qc, sa2, sm2, g, r):
         self.g = g
@@ -85,8 +113,8 @@ class EKF():
         """
         
         self.Ax, self.Ay, self.Az = self.imu.get_acc()
-        self.p, self.q, self.r = imu.get_gyr()
-        self.mx, self.my, self.mz = imu.get_mag()
+        self.p, self.q, self.r = self.imu.get_gyr()
+        self.mx, self.my, self.mz = self.imu.get_mag()
         
         # Normalized Measurements
         self.a = np.array([[self.Ax, self.Ay, self.Az]]).T/np.linalg.norm(np.array([[self.Ax, self.Ay, self.Az]]))
@@ -108,8 +136,8 @@ class EKF():
         C = self.calc_C()
         
         z = np.array([[self.Ax, self.Ay, self.Az, self.mx, self.my, self.mz]]).T
-        ahat = C.T@g
-        mhat = C.T@r_m
+        ahat = C.T@self.g
+        mhat = C.T@self.r_m
 
         h = np.vstack((ahat, mhat))# measurement model
         H = self.calc_H()[:,:,0] # hacky, should fix

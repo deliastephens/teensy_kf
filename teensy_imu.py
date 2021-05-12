@@ -1,4 +1,22 @@
 import time, sys
+
+import numpy as np
+np.set_printoptions(linewidth=130)
+
+import matplotlib.pyplot as plt
+plt.rcParams['figure.figsize'] = [8, 6]
+
+import ipywidgets as widgets
+from IPython.display import display
+
+from jupyterplot import ProgressPlot # see https://github.com/lvwerra/jupyterplot
+
+import pyqtgraph as pg
+from pyqtgraph.Qt import QtCore, QtGui
+
+from sympy import Matrix
+from scipy.spatial.transform import Rotation
+
 import teensyimu as ti
 
 
