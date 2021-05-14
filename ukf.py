@@ -92,7 +92,7 @@ class UKF():
     def h(self, Xp):
         h = np.zeros((6, np.shape(Xp)[1]))
         for i in range(np.shape(Xp)[1]):
-            Xp[:,i] = vec_norm(Xp[:,i]) # normalize Xp to enforce unit quaternion constraint
+            Xp[:4,i] = vec_norm(Xp[:4,i]) # normalize Xp to enforce unit quaternion constraint
             C = self.calc_C(Xp[:,i])
             ahat = C.T@self.g
             mhat = C.T@self.r_m
@@ -136,7 +136,7 @@ class UKF():
 
         # Recover Gaussian statistics - mean and covariance
         self.xhat = np.sum(self.Wm * Xp, axis=1)
-        self.xhat = vec_norm(self.xhat)
+        self.xhat[:4] = vec_norm(self.xhat[:4])
         self.Q = ((Xp.T - self.xhat).T * self.Wc).dot(Xp.T - self.xhat) + self.W
     
     def update(self):
@@ -157,7 +157,7 @@ class UKF():
         # Perform measurement update
         K = Σ_xz @ np.linalg.inv(S)
         self.xhat += K @ (self.z - zhat)
-        self.xhat = vec_norm(self.xhat)
+        self.xhat[:4] = vec_norm(self.xhat[:4])
         self.Q += - K @ S @ K.T
         
         
